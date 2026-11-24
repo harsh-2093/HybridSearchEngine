@@ -1,60 +1,81 @@
+
 package org.example;
 
-import org.example.model.Document;
-import org.example.preprocessing.Tokenizer;
-import org.example.retrieval.BM25;
-import org.example.retrieval.DocumentFrequency;
-import org.example.retrieval.IDFCalculator;
+import org.example.model.SearchResult;
+import org.example.retrieval.SemanticSearch;
+import org.example.service.SearchService;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 
 import java.util.List;
-import java.util.Map;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+@SpringBootApplication
 public class Main {
+
     public static void main(String[] args) {
+        SpringApplication.run(Main.class, args);
+    }
 
-        // 1. Create documents
-        List<Document> documents = List.of(
-                new Document(1, "Java",
-                        "Java is a programming language. Java supports object oriented programming."),
-                new Document(2, "Java Memory",
-                        "Java supports garbage collection and memory management."),
-                new Document(3, "Python",
-                        "Python is a programming language used for machine learning.")
-        );
+    @Bean
+    CommandLineRunner runSearch(
+            SearchService searchService,
+            SemanticSearch semanticSearch) {
 
-        // 2. Tokenize documents
-        Tokenizer tokenizer = new Tokenizer();
+        return args -> {
 
-        for (Document document : documents) {
-            document.setTokens(tokenizer.tokenize(document.getContent()));
-        }
+            String query = "How do microservices communicate?";
 
-        // 3. Calculate document frequency
-        DocumentFrequency dfCalculator = new DocumentFrequency();
-        Map<String, Integer> df = dfCalculator.calculate(documents);
+            // BM25 results
+            List<SearchResult> bm25Results =
+                    searchService.search(query);
 
-        // 4. Calculate IDF
-        IDFCalculator idfCalculator = new IDFCalculator();
-        Map<String, Double> idf =
-                idfCalculator.calculate(df, documents.size());
+            // SBERT results
+            List<SearchResult> semanticResults =
+                    semanticSearch.search(query);
 
+            System.out.println("\n========== BM25 RESULTS ==========");
 
-        // 5. Initialize BM25
-        BM25 bm25 = new BM25(1.5, 0.75, documents, idf);
+            for (int i = 0; i < bm25Results.size(); i++) {
 
+                SearchResult result = bm25Results.get(i);
 
-        // 6. Search query
-        List<String> query = tokenizer.tokenize("java programming");
+                System.out.println(
+                        "Rank: " + (i + 1)
+                );
 
-        // 7. Calculate and display scores
-        for (Document document : documents) {
-            double score = bm25.calculateScore(document, query);
+                System.out.println(
+                        "Title: " + result.getDocument().getTitle()
+                );
 
-            System.out.println(
-                    document.getTitle() + " -> " + score
-            );
-        }
+                System.out.println(
+                        "BM25 Score: " + result.getScore()
+                );
+
+                System.out.println("-------------------------");
+            }
+
+            System.out.println("\n========== SBERT RESULTS ==========");
+
+            for (int i = 0; i < semanticResults.size(); i++) {
+
+                SearchResult result = semanticResults.get(i);
+
+                System.out.println(
+                        "Rank: " + (i + 1)
+                );
+
+                System.out.println(
+                        "Title: " + result.getDocument().getTitle()
+                );
+
+                System.out.println(
+                        "Cosine Similarity: " + result.getScore()
+                );
+
+                System.out.println("-------------------------");
+            }
+        };
     }
 }

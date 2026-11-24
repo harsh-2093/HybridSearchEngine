@@ -29,10 +29,12 @@ public class Document {
     public List<String> getTokens() {
         return tokens;
     }
+
     public void setTokens(List<String> tokens)
     {
         this.tokens=tokens;
     }
+
     public int getDocumentLength(){
         return tokens==null?0:tokens.size();
     }

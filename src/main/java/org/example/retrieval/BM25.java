@@ -20,8 +20,15 @@ public class BM25 {
         {
             totallen+=document.getDocumentLength();
         }
-        this.avgdl=(double)totallen/documents.size();
-        this.idf=idf;
+        if (documents.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Cannot initialize BM25 without documents"
+            );
+        }
+        else {
+            this.avgdl = (double) totallen / documents.size();
+            this.idf = idf;
+        }
     }
 
     public double calculateScore(Document document,List<String> query){
