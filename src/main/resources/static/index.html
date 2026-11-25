@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevSearch | Software Engineering Search</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f8fafc;
+      color: #111827;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #f8fafc;
+    }
+
+    header {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      padding: 0 7%;
+      background: #111827;
+      color: #fff;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+    }
+
+    .brand-icon {
+      width: 25px;
+      height: 25px;
+      display: grid;
+      place-items: center;
+      border: 1.5px solid #60a5fa;
+      border-radius: 8px;
+      color: #60a5fa;
+      font-size: 16px;
+    }
+
+    main {
+      width: min(680px, calc(100% - 36px));
+      margin: 104px auto 64px;
+    }
+
+    .intro {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      font-size: clamp(30px, 5vw, 42px);
+      line-height: 1.15;
+      letter-spacing: -1.7px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .subtitle {
+      margin-top: 10px;
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    .notice {
+      margin: 0 auto 22px;
+      max-width: 570px;
+      text-align: center;
+      color: #64748b;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .search-form {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px;
+      background: #fff;
+      border: 1px solid #dbe2ea;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+      transition: border-color 150ms ease, box-shadow 150ms ease;
+    }
+
+    .search-form:focus-within {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.11);
+    }
+
+    .search-icon {
+      margin-left: 9px;
+      color: #94a3b8;
+      font-size: 19px;
+    }
+
+    input {
+      min-width: 0;
+      flex: 1;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: #111827;
+      font: inherit;
+      font-size: 14px;
+      padding: 11px 0;
+    }
+
+    input::placeholder {
+      color: #94a3b8;
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 11px 18px;
+      background: #2563eb;
+      color: #fff;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 150ms ease, transform 150ms ease;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      opacity: 0.65;
+      cursor: wait;
+    }
+
+    .results {
+      margin-top: 38px;
+    }
+
+    .results-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #e2e8f0;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .result-count {
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 400;
+    }
+
+    .result {
+      padding: 20px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .result h2 {
+      color: #1e40af;
+      font-size: 16px;
+      line-height: 1.45;
+      font-weight: 650;
+      letter-spacing: -0.2px;
+    }
+
+    .result p {
+      margin-top: 7px;
+      color: #64748b;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .result-meta {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 10px;
+      color: #94a3b8;
+      font-size: 11px;
+    }
+
+    .score {
+      color: #2563eb;
+      font-weight: 600;
+    }
+
+    .message {
+      padding: 28px 12px;
+      text-align: center;
+      color: #64748b;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .message.error {
+      color: #b91c1c;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 520px) {
+      header {
+        height: 58px;
+        padding: 0 20px;
+      }
+
+      main {
+        margin-top: 76px;
+      }
+
+      .search-form {
+        gap: 7px;
+      }
+
+      button {
+        padding: 11px 13px;
+      }
+
+      .result h2 {
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">⌕</span>
+      <span>DevSearch</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="intro">
+      <h1>Search smarter.</h1>
+      <p class="subtitle">Software Engineering Knowledge Search</p>
+    </section>
+
+    <p class="notice">
+      A focused collection of articles and concepts related to Software Engineering.
+    </p>
+
+    <form class="search-form" id="searchForm">
+      <span class="search-icon" aria-hidden="true">⌕</span>
+      <input
+        id="query"
+        name="q"
+        type="search"
+        placeholder="Enter your search query..."
+        autocomplete="off"
+        required
+      >
+      <button id="searchButton" type="submit">Search</button>
+    </form>
+
+    <section class="results hidden" id="resultsSection" aria-live="polite">
+      <div class="results-heading">
+        <span>Search Results</span>
+        <span class="result-count" id="resultCount"></span>
+      </div>
+      <div id="resultsList"></div>
+    </section>
+
+    <p class="message hidden" id="statusMessage" role="status"></p>
+  </main>
+
+  <script>
+    const searchForm = document.getElementById("searchForm");
+    const queryInput = document.getElementById("query");
+    const searchButton = document.getElementById("searchButton");
+    const resultsSection = document.getElementById("resultsSection");
+    const resultsList = document.getElementById("resultsList");
+    const resultCount = document.getElementById("resultCount");
+    const statusMessage = document.getElementById("statusMessage");
+
+    searchForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const query = queryInput.value.trim();
+      if (!query) return;
+
+      resultsSection.classList.add("hidden");
+      statusMessage.classList.remove("hidden", "error");
+      statusMessage.textContent = "Searching...";
+      searchButton.disabled = true;
+      searchButton.textContent = "Searching";
+
+      try {
+        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+
+        if (!response.ok) {
+          throw new Error(`Search request failed (${response.status}).`);
+        }
+
+        const results = await response.json();
+        displayResults(results);
+      } catch (error) {
+        statusMessage.classList.remove("hidden");
+        statusMessage.classList.add("error");
+        statusMessage.textContent =
+          "Could not connect to the search API. Make sure the Spring Boot application is running. " +
+          error.message;
+      } finally {
+        searchButton.disabled = false;
+        searchButton.textContent = "Search";
+      }
+    });
+
+    function displayResults(results) {
+      resultsList.replaceChildren();
+      statusMessage.classList.add("hidden");
+      resultsSection.classList.remove("hidden");
+
+      resultCount.textContent =
+        `${results.length} ${results.length === 1 ? "result" : "results"} found`;
+
+      if (results.length === 0) {
+        resultsList.innerHTML =
+          '<p class="message">No results found. Try a different search query.</p>';
+        return;
+      }
+
+      results.forEach((item) => {
+        // "doc" is the API document. Keep "document" for the browser DOM.
+        const doc = item.document || {};
+        const card = document.createElement("article");
+        card.className = "result";
+
+        const title = document.createElement("h2");
+        title.textContent = doc.title || "Untitled document";
+
+        const snippet = document.createElement("p");
+        const content = doc.content || "";
+        snippet.textContent =
+          content.length > 220 ? content.slice(0, 220).trimEnd() + "..." : content;
+
+        const meta = document.createElement("div");
+        meta.className = "result-meta";
+
+        const id = document.createElement("span");
+        id.textContent = `Document #${doc.id ?? "N/A"}`;
+
+        const score = document.createElement("span");
+        score.className = "score";
+        const numericScore = Number(item.score);
+        score.textContent = `Score: ${
+          Number.isFinite(numericScore) ? numericScore.toFixed(5) : "N/A"
+        }`;
+
+        meta.append(id, score);
+        card.append(title, snippet, meta);
+        resultsList.appendChild(card);
+      });
+    }
+  </script>
+</body>
+</html>
