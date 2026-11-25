@@ -242,12 +242,12 @@ Planned test coverage:
 - [x] Create in-memory document repository.
 - [x] Implement Document Frequency calculation.
 - [x] Implement BM25 IDF calculation.
-- [X] Implement BM25 scoring from scratch.
-- [X] Build document indexing pipeline.
-- [X] Integrate SBERT using all-MiniLM-L6-v2.
-- [X] Implement embedding generation.
-- [X] Implement cosine similarity.
-- [X] Develop semantic search.
+- [ ] Implement BM25 scoring from scratch.
+- [ ] Build document indexing pipeline.
+- [ ] Integrate SBERT using all-MiniLM-L6-v2.
+- [ ] Implement embedding generation.
+- [ ] Implement cosine similarity.
+- [ ] Develop semantic search.
 - [ ] Implement hybrid retrieval.
 - [ ] Implement Reciprocal Rank Fusion.
 - [ ] Expose search functionality through REST APIs.
