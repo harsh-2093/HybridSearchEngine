@@ -1,4 +1,4 @@
-# Wiki Search Engine
+# Hybrid Search Engine
 
 A search engine built using Java and Spring Boot that explores how modern information retrieval systems work under the hood.
 
