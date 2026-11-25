@@ -1,4 +1,4 @@
-# DevSearch | Hybrid Search Engine
+# Hybrid Search Engine
 
 A Java-based hybrid search engine built with **Spring Boot** that explores how modern information retrieval systems work under the hood.
 
