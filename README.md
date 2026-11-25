@@ -1,72 +1,96 @@
 # Hybrid Search Engine
 
-A search engine built using Java and Spring Boot that explores how modern information retrieval systems work under the hood.
+A Java-based hybrid search engine built with **Spring Boot** that explores how modern information retrieval systems work under the hood.
 
-The project combines traditional keyword-based retrieval using **BM25** with semantic retrieval using **Sentence-BERT (SBERT)** to find relevant documents based on exact keyword matches and contextual meaning.
+DevSearch combines traditional keyword-based retrieval using **BM25** with semantic retrieval using **Sentence-BERT (SBERT)** to find relevant documents through both exact keyword matches and contextual meaning.
 
-Rather than relying on prebuilt search engines such as Apache Lucene or Elasticsearch for ranking, the core BM25 scoring and ranking logic will be implemented independently.
+The project implements BM25 scoring, cosine similarity, and Reciprocal Rank Fusion (RRF) independently rather than relying on prebuilt search engines such as Apache Lucene or Elasticsearch for ranking.
 
-## 🎯 Project Goals
+It also provides a REST API and a minimal web interface for searching a collection of software engineering articles.
 
-- Understand Information Retrieval fundamentals.
-- Implement BM25 ranking from scratch.
-- Integrate SBERT for semantic search.
-- Generate and compare document and query embeddings.
-- Implement cosine similarity.
-- Combine keyword-based and semantic retrieval.
-- Implement Reciprocal Rank Fusion (RRF).
-- Build a modular search engine using Java and Spring Boot.
+## 🚀 Features
+
+- **Custom BM25 Implementation:** Keyword-based document ranking implemented from scratch.
+- **Semantic Search:** Uses Sentence-BERT embeddings to understand contextual meaning.
+- **Cosine Similarity:** Calculates similarity between query and document embeddings.
+- **Hybrid Retrieval:** Combines lexical and semantic search results.
+- **Reciprocal Rank Fusion:** Merges rankings from BM25 and SBERT.
+- **REST API:** Exposes search functionality through Spring Boot.
+- **Web Interface:** Minimal frontend for submitting queries and viewing ranked results.
+- **In-Memory Retrieval:** Stores document embeddings in memory without requiring an external vector database.
+
+## 🏗️ Architecture
+
+The search engine follows a hybrid retrieval pipeline:
+
+```text
+                   Documents
+                       |
+                       v
+                 Document Loading
+                       |
+                       v
+                  Preprocessing
+                       |
+              +--------+--------+
+              |                 |
+              v                 v
+            BM25              SBERT
+              |                 |
+              v                 v
+       Keyword Search    Semantic Search
+              |                 |
+              +--------+--------+
+                       |
+                       v
+                 Hybrid Search
+                       |
+                       v
+           Reciprocal Rank Fusion
+                       |
+                       v
+                 Final Results
+                       |
+                       v
+                  REST API
+                       |
+                       v
+                 DevSearch UI
+```
 
 ## 🛠️ Tech Stack
 
 | Technology | Purpose |
 |---|---|
 | Java 21 | Core programming language |
-| Spring Boot | Backend application |
+| Spring Boot | Backend application and REST API |
+| Spring AI | Embedding model integration |
+| all-MiniLM-L6-v2 | Semantic embedding generation |
 | Maven | Dependency management |
-| REST API | Search interface |
-| all-MiniLM-L6-v2 | Semantic embeddings |
+| Apache Commons CSV | CSV document ingestion |
 | Cosine Similarity | Semantic similarity calculation |
+| HTML, CSS, JavaScript | Frontend |
 | Git & GitHub | Version control |
-
-## 🏗️ Architecture
-
-```text
-                  Documents
-                      |
-                      v
-                 Preprocessing
-                      |
-             +--------+--------+
-             |                 |
-             v                 v
-           BM25              SBERT
-             |                 |
-             v                 v
-       Keyword Search    Semantic Search
-             |                 |
-             +--------+--------+
-                      |
-                      v
-                 Hybrid Search
-                      |
-                      v
-             Reciprocal Rank Fusion
-                      |
-                      v
-                 Final Results
-```
 
 ## 📚 Core Components
 
 ### 1. Document Processing
 
-Documents are processed before retrieval.
+Documents are loaded from a CSV dataset containing software engineering-related articles.
+
+Each document contains:
+- Document ID
+- Title
+- Content
+
+Before lexical retrieval, documents undergo preprocessing:
 
 - Lowercase conversion.
 - Special character removal.
 - Tokenization.
 - Document length calculation.
+
+The tokenizer converts text into a list of normalized terms used by the BM25 retrieval system.
 
 ### 2. BM25 Search
 
@@ -98,15 +122,24 @@ Where:
 - `k1` = Controls term frequency saturation.
 - `b` = Controls document length normalization.
 
-The BM25 scoring and ranking logic will be implemented from scratch without using Lucene or Elasticsearch.
+The BM25 scoring and ranking logic is implemented from scratch without using Lucene or Elasticsearch.
 
 ### 3. Semantic Search with SBERT
 
 Semantic search retrieves documents based on contextual meaning rather than relying exclusively on exact keyword matches.
 
-The project will use **all-MiniLM-L6-v2** to generate dense vector embeddings for documents and search queries.
+The project uses **all-MiniLM-L6-v2** to generate dense vector embeddings for documents and search queries.
 
-These embeddings represent the semantic meaning of text in numerical form.
+The model generates 384-dimensional embeddings representing the semantic information in the input text.
+
+Document embeddings are generated during application initialization and stored in memory.
+
+For a search query:
+
+1. Generate an embedding for the query.
+2. Compare it against stored document embeddings.
+3. Calculate cosine similarity.
+4. Rank documents by similarity score.
 
 **Cosine Similarity Formula:**
 
@@ -123,7 +156,7 @@ Where:
 - `A · B` = Dot product of the vectors.
 - `||A||` and `||B||` = Vector magnitudes.
 
-Cosine similarity will help retrieve relevant documents even when the query and document use different words with similar meanings.
+This allows the search engine to retrieve relevant documents even when the query and document use different words with similar meanings.
 
 ### 4. Hybrid Search
 
@@ -132,11 +165,15 @@ Hybrid search combines two retrieval approaches:
 - **BM25:** Keyword-based retrieval.
 - **SBERT:** Semantic retrieval.
 
-The objective is to benefit from both exact keyword matching and contextual understanding.
+BM25 helps identify documents containing relevant terms, while SBERT identifies documents with similar contextual meaning.
+
+Combining both approaches helps improve retrieval beyond relying on either method independently.
 
 ### 5. Reciprocal Rank Fusion (RRF)
 
 Reciprocal Rank Fusion combines ranked results from multiple retrieval systems into a unified ranking.
+
+Instead of directly combining BM25 and cosine similarity scores, RRF uses the position of each document in the individual rankings.
 
 **RRF Formula:**
 
@@ -150,9 +187,25 @@ Where:
 - `d` = Document.
 - `R` = Set of ranking systems.
 - `rank_r(d)` = Position of document `d` in ranking system `r`.
-- `k` = Ranking constant, commonly 60.
+- `k` = Ranking constant, set to 60.
 
-RRF will combine BM25 and SBERT rankings to produce the final search results.
+The implementation accumulates contributions from BM25 and semantic search using document IDs, then sorts documents by their final RRF scores.
+
+## 🖥️ Application Screenshots
+
+DevSearch provides a minimal web interface for searching software engineering articles and viewing results from the hybrid retrieval pipeline.
+
+### Search Interface
+
+<p align="center">
+  <img src="screenshots/capture1.png" width="850" alt="DevSearch Search Interface">
+</p>
+
+### Search Results
+
+<p align="center">
+  <img src="screenshots/capture2.png" width="850" alt="DevSearch Hybrid Search Results">
+</p>
 
 ## 📂 Project Structure
 
@@ -162,65 +215,138 @@ WikiSearchEngine/
 ├── src/
 │   ├── main/
 │   │   ├── java/
-│   │   │   └── com/example/wikisearchengine/
+│   │   │   └── org/example/
+│   │   │       │
+│   │   │       ├── controller/
+│   │   │       │   └── SearchController.java
+│   │   │       │
+│   │   │       ├── ingestion/
+│   │   │       │   └── DocumentLoader.java
 │   │   │       │
 │   │   │       ├── model/
-│   │   │       │   └── Document.java
+│   │   │       │   ├── Document.java
+│   │   │       │   └── SearchResult.java
 │   │   │       │
 │   │   │       ├── preprocessing/
 │   │   │       │   └── Tokenizer.java
 │   │   │       │
-│   │   │       ├── repository/
-│   │   │       │   └── DocumentRepository.java
-│   │   │       │
 │   │   │       ├── retrieval/
+│   │   │       │   ├── BM25.java
 │   │   │       │   ├── DocumentFrequency.java
 │   │   │       │   ├── IDFCalculator.java
-│   │   │       │   ├── BM25.java
-│   │   │       │   └── RRF.java
+│   │   │       │   ├── SemanticSearch.java
+│   │   │       │   └── ReciprocalRankFusion.java
 │   │   │       │
-│   │   │       └── WikiSearchEngineApplication.java
+│   │   │       ├── service/
+│   │   │       │   ├── EmbeddingService.java
+│   │   │       │   └── SearchService.java
+│   │   │       │
+│   │   │       └── Main.java
 │   │   │
 │   │   └── resources/
+│   │       ├── static/
+│   │       │   └── index.html
+│   │       ├── documents.csv
+│   │       └── application.properties
 │   │
 │   └── test/
+│
+├── screenshots/
+│   ├── capture1.png
+│   └── capture2.png
 │
 ├── pom.xml
 └── README.md
 ```
 
-*The structure will evolve as the project develops.*
+*The structure above reflects the main application components. Additional configuration and test files may exist.*
+
+## 🔌 API Usage
+
+The application exposes a search endpoint through Spring Boot.
+
+**Endpoint:**
+
+```http
+GET /api/search?q=microservices
+```
+
+**Example:**
+
+```bash
+curl "http://localhost:8080/api/search?q=microservices"
+```
+
+The API returns a ranked JSON response containing document information and the corresponding hybrid RRF score.
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
 - Java 21 or later.
-- Maven 3.8+.
+- Maven 3.8 or later.
 - Git.
 
-### Clone the Repository
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/harsh-2093/WikiSearchEngine.git
+
 cd WikiSearchEngine
 ```
 
-### Build the Project
+### 2. Build the Project
 
 ```bash
 mvn clean install
 ```
 
-### Run the Application
+### 3. Run the Application
 
 ```bash
 mvn spring-boot:run
 ```
 
-## 🧪 Testing
+The Spring Boot application starts on:
 
-The project will include tests for individual retrieval components.
+```text
+http://localhost:8080
+```
+
+### 4. Open DevSearch
+
+Visit the following URL in your browser:
+
+```text
+http://localhost:8080/
+```
+
+Enter a software engineering-related query to retrieve relevant documents using the hybrid search pipeline.
+
+## 🗺️ Development Roadmap
+
+- [x] Initialize Spring Boot project.
+- [x] Create Document model.
+- [x] Implement document loading from CSV.
+- [x] Implement tokenizer.
+- [x] Implement Document Frequency calculation.
+- [x] Implement BM25 IDF calculation.
+- [x] Implement BM25 scoring and ranking from scratch.
+- [x] Integrate SBERT using all-MiniLM-L6-v2.
+- [x] Implement embedding generation.
+- [x] Implement cosine similarity.
+- [x] Develop semantic search.
+- [x] Implement hybrid retrieval.
+- [x] Implement Reciprocal Rank Fusion.
+- [x] Expose search functionality through REST API.
+- [x] Build DevSearch frontend.
+- [ ] Add comprehensive automated test coverage.
+- [ ] Evaluate retrieval quality using sample queries.
+- [ ] Optimize document indexing and retrieval performance.
+
+## 🧪 Testing and Evaluation
+
+The retrieval components can be evaluated independently and as part of the complete hybrid pipeline.
 
 Planned test coverage:
 
@@ -228,35 +354,15 @@ Planned test coverage:
 - Document frequency calculation.
 - IDF calculation.
 - BM25 scoring and ranking.
-- SBERT embedding generation.
+- Embedding generation.
 - Cosine similarity.
 - Semantic search.
-- Hybrid ranking.
 - Reciprocal Rank Fusion.
-
-## 🗺️ Development Roadmap
-
-- [x] Initialize Spring Boot project.
-- [x] Create Document model.
-- [x] Implement tokenizer.
-- [x] Create in-memory document repository.
-- [x] Implement Document Frequency calculation.
-- [x] Implement BM25 IDF calculation.
-- [ ] Implement BM25 scoring from scratch.
-- [ ] Build document indexing pipeline.
-- [ ] Integrate SBERT using all-MiniLM-L6-v2.
-- [ ] Implement embedding generation.
-- [ ] Implement cosine similarity.
-- [ ] Develop semantic search.
-- [ ] Implement hybrid retrieval.
-- [ ] Implement Reciprocal Rank Fusion.
-- [ ] Expose search functionality through REST APIs.
-- [ ] Add comprehensive test coverage.
-- [ ] Evaluate retrieval quality using sample queries.
+- Hybrid retrieval quality.
 
 ## 💡 Learning Outcomes
 
-Through this project, the objective is to gain practical understanding of:
+This project focuses on developing a practical understanding of:
 
 - Information Retrieval fundamentals.
 - Probabilistic ranking models.
@@ -266,16 +372,20 @@ Through this project, the objective is to gain practical understanding of:
 - Semantic similarity.
 - Hybrid information retrieval.
 - Reciprocal Rank Fusion.
-- Backend development using Java and Spring Boot.
+- REST API development using Java and Spring Boot.
 
 ## 📌 Project Status
 
 **Under Development**
 
-This project is being developed incrementally, with an emphasis on understanding and implementing the underlying retrieval algorithms rather than relying entirely on existing search-engine libraries.
+The core hybrid retrieval pipeline and web interface are implemented. Further work focuses on automated testing, retrieval evaluation, and performance improvements.
+
+The primary objective is to understand and implement the underlying retrieval algorithms rather than relying entirely on existing search-engine libraries.
 
 ---
 
 **Author:** Harsh Tripathi
 
 **GitHub:** [harsh-2093](https://github.com/harsh-2093)
+
+**Repository:** [WikiSearchEngine](https://github.com/harsh-2093/WikiSearchEngine)
